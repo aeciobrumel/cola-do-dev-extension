@@ -14,9 +14,12 @@ Extensão Chrome em React + TypeScript (Vite) com popup para gerenciar snippets.
 ## Prints
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/5c908a41-07d3-41b9-bc56-78f75a69def3" width="250" />
-  <img src="https://github.com/user-attachments/assets/6e75c551-d409-4539-b536-3dbbbbce54fa" width="250" />
-  <img src="https://github.com/user-attachments/assets/7e11ecdf-f8b6-4aaf-9e84-7a56f8c7c1de" width="250" />
+<img width="250"  src="https://github.com/user-attachments/assets/e14eef95-ae77-4837-a6a2-39bf32b231f2" />
+  <img width="250"  src="https://github.com/user-attachments/assets/91f6f513-041d-401f-89c5-0bf1ecc4d4d9" />
+<img width="250"  src="https://github.com/user-attachments/assets/3f9eb85c-9318-4de2-8845-8305d76db677" />
+
+  <img width="250"  alt="image" src="https://github.com/user-attachments/assets/0917a3e4-f058-4286-8004-d3bd536e415e" />
+
 </p>
 
 
