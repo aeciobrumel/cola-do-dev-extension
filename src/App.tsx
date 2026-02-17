@@ -7,6 +7,7 @@ import {
   useRef,
   useState
 } from "react";
+import { FiMoreHorizontal } from "react-icons/fi";
 import { getTechMeta } from "./config/techIcons";
 import { defaultSnippets } from "./defaultSnippets";
 import { getStoredSnippets, setStoredSnippets } from "./storage";
@@ -137,8 +138,11 @@ export default function App() {
 
   const [copiedSnippetId, setCopiedSnippetId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("");
+  const [isUtilityMenuOpen, setIsUtilityMenuOpen] = useState<boolean>(false);
+  const [expandedSnippet, setExpandedSnippet] = useState<Snippet | null>(null);
 
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const utilityMenuRef = useRef<HTMLDivElement | null>(null);
   const copyTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -192,6 +196,47 @@ export default function App() {
       setStatusMessage("Falha ao salvar snippets no chrome.storage.local.");
     });
   }, [snippets, isLoading]);
+
+  useEffect(() => {
+    if (!isUtilityMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent): void => {
+      const target = event.target;
+
+      if (!(target instanceof Node)) {
+        return;
+      }
+
+      if (!utilityMenuRef.current?.contains(target)) {
+        setIsUtilityMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [isUtilityMenuOpen]);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent): void => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      setIsUtilityMenuOpen(false);
+      setExpandedSnippet(null);
+    };
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   const categories = useMemo(() => {
     return Array.from(new Set(snippets.map((snippet) => snippet.category))).sort();
@@ -247,6 +292,7 @@ export default function App() {
     setEditingSnippetId(null);
     setFormData(EMPTY_FORM);
     setStatusMessage("");
+    setIsUtilityMenuOpen(false);
   }
 
   function openEditEditor(snippet: Snippet): void {
@@ -260,6 +306,7 @@ export default function App() {
       code: snippet.code
     });
     setStatusMessage("");
+    setIsUtilityMenuOpen(false);
   }
 
   function closeEditor(): void {
@@ -326,6 +373,10 @@ export default function App() {
       closeEditor();
     }
 
+    if (expandedSnippet?.id === snippetId) {
+      setExpandedSnippet(null);
+    }
+
     setStatusMessage("Snippet removido com sucesso.");
   }
 
@@ -370,9 +421,11 @@ export default function App() {
     URL.revokeObjectURL(url);
 
     setStatusMessage("Exportação concluída.");
+    setIsUtilityMenuOpen(false);
   }
 
   function triggerImportJson(): void {
+    setIsUtilityMenuOpen(false);
     importInputRef.current?.click();
   }
 
@@ -409,24 +462,61 @@ export default function App() {
 
   return (
     <div className="popup">
-      <header className="popup-header">
-        <div>
-          <h1>Cola do Dev</h1>
-          <p>Cheats e snippets no popup do Chrome</p>
+      <header className="popup-topbar">
+        <div className="brand">
+          <span className="brand-icon" aria-hidden="true">
+            <img src="/logo.svg" alt="" className="brand-logo" />
+          </span>
+          <div className="brand-copy">
+            <h1>Cola do Dev</h1>
+            <p>Snippets de bolso</p>
+          </div>
         </div>
-        <button type="button" className="btn btn-primary" onClick={openCreateEditor}>
-          Novo
+        <button type="button" className="btn btn-primary btn-compact" onClick={openCreateEditor}>
+          + Novo
         </button>
       </header>
 
-      <section className="toolbar">
-        <input
-          className="search-input"
-          type="search"
-          placeholder="Buscar por título, descrição, categoria ou código"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-        />
+      <section className="search-panel">
+        <div className="search-row">
+          <input
+            className="search-input"
+            type="search"
+            placeholder="Buscar por título, descrição, categoria ou código"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+
+          <div className="utility-menu" ref={utilityMenuRef}>
+            <button
+              type="button"
+              className="btn btn-icon"
+              aria-label="Mais acoes"
+              aria-haspopup="menu"
+              aria-expanded={isUtilityMenuOpen}
+              onClick={() => setIsUtilityMenuOpen((current) => !current)}
+            >
+              <FiMoreHorizontal aria-hidden="true" />
+            </button>
+
+            {isUtilityMenuOpen ? (
+              <div className="utility-dropdown" role="menu" aria-label="Acoes de JSON">
+                <button type="button" className="utility-item" role="menuitem" onClick={triggerImportJson}>
+                  Importar JSON
+                </button>
+                <button
+                  type="button"
+                  className="utility-item"
+                  role="menuitem"
+                  onClick={handleExportJson}
+                  disabled={snippets.length === 0}
+                >
+                  Exportar JSON
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
 
         <div className="filters-row">
           <select
@@ -452,20 +542,6 @@ export default function App() {
               </option>
             ))}
           </select>
-        </div>
-
-        <div className="actions-row">
-          <button type="button" className="btn" onClick={triggerImportJson}>
-            Importar JSON
-          </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={handleExportJson}
-            disabled={snippets.length === 0}
-          >
-            Exportar JSON
-          </button>
         </div>
       </section>
 
@@ -577,21 +653,30 @@ export default function App() {
 
                   <p className="snippet-description">{snippet.description}</p>
 
-                  <pre>
-                    <code>{snippet.code}</code>
-                  </pre>
+                  <div className="snippet-code-box">
+                    <pre className="snippet-code-preview">
+                      <code>{snippet.code}</code>
+                    </pre>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-expand"
+                      onClick={() => setExpandedSnippet(snippet)}
+                    >
+                      Expandir
+                    </button>
+                  </div>
 
                   <div className="snippet-actions">
                     <button
                       type="button"
-                      className="btn"
+                      className="btn btn-primary"
                       onClick={() => void handleCopySnippet(snippet.id, snippet.code)}
                     >
                       {copiedSnippetId === snippet.id ? "Copiado" : "Copiar"}
                     </button>
                     <button
                       type="button"
-                      className="btn"
+                      className="btn btn-neutral"
                       onClick={() => openEditEditor(snippet)}
                     >
                       Editar
@@ -609,6 +694,42 @@ export default function App() {
             })
           : null}
       </section>
+
+      {expandedSnippet ? (
+        <div
+          className="code-modal-backdrop"
+          role="presentation"
+          onClick={() => setExpandedSnippet(null)}
+        >
+          <section
+            className="code-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="code-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="code-modal-header">
+              <div>
+                <h2 id="code-modal-title">{expandedSnippet.title}</h2>
+                <p>
+                  {expandedSnippet.category} / {expandedSnippet.subCategory}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-neutral btn-compact"
+                onClick={() => setExpandedSnippet(null)}
+              >
+                Fechar
+              </button>
+            </header>
+
+            <pre className="code-modal-content">
+              <code>{expandedSnippet.code}</code>
+            </pre>
+          </section>
+        </div>
+      ) : null}
 
       <input
         ref={importInputRef}

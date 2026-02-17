@@ -4,6 +4,11 @@
   "description": "Coleção de snippets com busca, filtros, CRUD e import/export em JSON.",
   "version": "1.0.0",
   "permissions": ["storage"],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "action": {
     "default_title": "Cola do Dev",
     "default_popup": "index.html"

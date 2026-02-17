@@ -19,6 +19,7 @@ import {
   SiNestjs,
   SiNextdotjs,
   SiNodedotjs,
+  SiOpenai,
   SiPhp,
   SiPostgresql,
   SiPython,
@@ -67,6 +68,11 @@ export const TECH_META = {
     label: "Docker",
     icon: SiDocker,
     color: "#2496ED"
+  },
+  IA: {
+    label: "IA",
+    icon: SiOpenai,
+    color: "#10A37F"
   },
   Git: {
     label: "Git",
@@ -218,6 +224,8 @@ const EXTRA_ALIASES: Record<string, TechKey> = {
   postgres: "PostgreSQL",
   mongo: "MongoDB",
   k8s: "Kubernetes",
+  ai: "IA",
+  ia: "IA",
   tailwind: "Tailwind CSS",
   expressjs: "Express"
 };

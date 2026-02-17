@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <!-- Paper -->
+  <rect x="60" y="36" width="136" height="184" rx="18" fill="#ffffff" stroke="#0f172a" stroke-width="12"/>
+
+  <!-- Fold -->
+  <path d="M150 36l46 46" stroke="#0f172a" stroke-width="12" stroke-linecap="round"/>
+  <path d="M196 82V56c0-11-9-20-20-20h-26" stroke="#0f172a" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Code chevrons </> (sem a barra pra não poluir em 16px) -->
+  <path d="M112 132l-18 14 18 14" stroke="#0f172a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M144 132l18 14-18 14" stroke="#0f172a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Accent (opcional) -->
+  <circle cx="88" cy="72" r="8" fill="#14b8a6"/>
+</svg>
