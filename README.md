@@ -11,6 +11,18 @@ Extensão Chrome em React + TypeScript (Vite) com popup para gerenciar snippets.
 - Persistência no `chrome.storage.local`
 - Import/Export JSON
 
+## Prints
+
+<img width="780" height="1168" alt="image" src="https://github.com/user-attachments/assets/5c908a41-07d3-41b9-bc56-78f75a69def3" />
+
+<img width="715" height="1052" alt="image" src="https://github.com/user-attachments/assets/6e75c551-d409-4539-b536-3dbbbbce54fa" />
+
+<img width="755" height="1099" alt="image" src="https://github.com/user-attachments/assets/7e11ecdf-f8b6-4aaf-9e84-7a56f8c7c1de" />
+
+
+
+
+
 Modelo de dados principal:
 
 ```ts
