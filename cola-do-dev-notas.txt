@@ -1,0 +1,230 @@
+DOCKER
+======
+
+Reset total (derrubar tudo):
+---------------------------
+docker stop $(docker ps -aq) 2>/dev/null || true && \
+docker rm $(docker ps -aq) 2>/dev/null || true && \
+docker network prune -f && \
+docker volume prune -f
+
+
+LARAVEL / QUERY BUILDER (COLA RÁPIDA)
+====================================
+
+🔹 selectRaw(1)
+➡️ verifica se existe pelo menos uma linha
+
+🔹 selectRaw()
+➡️ escreve SQL puro no SELECT
+
+🔹 whereExists()
+➡️ confere existência de relacionamento
+
+🔹 exists()
+➡️ retorna true ou false se existir registro
+
+🔹 whereColumn()
+➡️ compara coluna com coluna
+
+🔹 where()
+➡️ compara coluna com valor
+
+🔹 join()
+➡️ liga tabelas para consulta
+
+🔹 leftJoin()
+➡️ liga tabelas mantendo registros da esquerda
+
+🔹 groupBy()
+➡️ agrupa resultados
+
+🔹 having()
+➡️ filtra após groupBy
+
+🔹 count()
+➡️ conta registros
+
+🔹 sum()
+➡️ soma valores
+
+🔹 avg()
+➡️ média de valores
+
+🔹 min() / max()
+➡️ menor / maior valor
+
+🔹 distinct()
+➡️ remove duplicados
+
+🔹 orderBy()
+➡️ ordena resultados
+
+🔹 limit() / take()
+➡️ limita quantidade de registros
+
+🔹 offset() / skip()
+➡️ pula registros
+
+🔹 pluck()
+➡️ retorna uma coluna
+
+🔹 value()
+➡️ retorna um único valor
+
+🔹 first()
+➡️ retorna um registro
+
+🔹 get()
+➡️ retorna coleção
+
+🔹 whereIn()
+➡️ filtra por lista de valores
+
+🔹 whereNotIn()
+➡️ exclui lista de valores
+
+🔹 whereNull() / whereNotNull()
+➡️ verifica NULL
+
+🔹 whereBetween()
+➡️ filtra intervalo
+
+🔹 DB::raw()
+➡️ injeta SQL puro (usar com cuidado)
+
+🔹 transaction()
+➡️ executa operações atômicas
+
+🔹 lockForUpdate()
+➡️ bloqueia linha para concorrência
+
+🔹 sharedLock()
+➡️ bloqueio de leitura
+
+🔹 exists() vs count()
+➡️ exists é mais performático para checagem
+
+
+ARTISAN - COMANDOS ÚTEIS
+=======================
+
+🔹 Criar Model
+> php artisan make:model User
+
+Model com migration junto
+> php artisan make:model Post -m
+
+🔹 Criar Migration
+> php artisan make:migration create_posts_table
+ou
+> php artisan make:migration add_status_to_users_table
+
+🔹 Criar Controller
+> php artisan make:controller UserController
+
+Controller resource (CRUD completo)
+> php artisan make:controller UserController --resource
+(Cria métodos: index, create, store, show, edit, update, destroy)
+
+🔹 Criar Model + Migration + Controller de uma vez
+> php artisan make:model Post -mcr
+
+🔹 Extras úteis
+Criar Request (validação)
+> php artisan make:request StoreUserRequest
+
+Criar Seeder
+> php artisan make:seeder UserSeeder
+
+Criar Factory
+> php artisan make:factory UserFactory --model=User
+
+🔥 RESET TOTAL (apaga tudo no banco e recria)
+> php artisan migrate:fresh
+
+Resetar e rodar seeders
+> php artisan migrate:fresh --seed
+
+
+GIT FLOW - TIPOS DE BRANCHES
+============================
+
+Main/Master:
+- Branch principal, sempre representa a versão estável e pronta para produção.
+
+Develop:
+- Integra todas as funcionalidades prontas para a próxima versão.
+
+Feature Branches:
+- Criadas a partir de develop para desenvolver novas funcionalidades.
+- Temporárias e excluídas após merge.
+- Exemplo: feature/nova-tela
+
+Release Branches:
+- Criadas a partir de develop para preparar uma nova entrega (release).
+- Corrigir bugs finais e preparar metadados.
+- Temporárias.
+
+Hotfix Branches:
+- Criadas diretamente da main/master para corrigir bugs críticos em produção.
+- Merge imediato em main e develop.
+
+
+CONVENTIONAL COMMITS / COMMITIZEN
+================================
+
+feat:
+- Nova funcionalidade (ex: feat/login-social)
+
+fix:
+- Correção de bug (ex: fix/erro-validacao-email)
+
+docs:
+- Mudanças apenas na documentação.
+
+style:
+- Mudanças de formatação (sem alterar lógica).
+
+refactor:
+- Reestruturação de código que não corrige bugs nem adiciona features.
+
+test:
+- Adição ou correção de testes.
+
+perf:
+- Melhorias de performance.
+
+Como funciona na prática:
+- Criar feature branch a partir de develop para nova função.
+- Após concluída, merge em develop.
+- Quando develop está pronta para release, cria-se release branch.
+- Se bug aparece na main, cria-se hotfix branch direto da main.
+
+
+
+
+
+guia de prompts uteis:
+
+
+Crie um pequeno \<pedaço de código\> que demonstre o uso de \<biblioteca/estrutura/função\> em \<linguagem de programação\>.
+Para refatorar:
+Refatore o seguinte \<pedaço de código\> para melhorar a legibilidade, performance e seguir as melhores práticas de \<linguagem de programação\>.
+Para docstring:
+Gere docstring concisa e clara para a função \<nome da função\> que aceita \<parâmetros\> e retorna \<tipo de retorno\>.
+Para explicar uma função:
+Explique, em tópicos, o que a função <nome >
+faz e se há riscos de erro de lógica.
+Para criar commits: após git add .
+
+“
+
+Escreva a mensagem de commit com base nas alterações staged.
+Use o padrão Conventional Commits
+Seja claro, objetivo e técnico.
+
+
+”
+
+
