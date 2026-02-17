@@ -1,4 +1,13 @@
-import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  CSSProperties,
+  ChangeEvent,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from "react";
+import { getTechMeta } from "./config/techIcons";
 import { defaultSnippets } from "./defaultSnippets";
 import { getStoredSnippets, setStoredSnippets } from "./storage";
 import { Snippet, SnippetFormData } from "./types";
@@ -542,48 +551,62 @@ export default function App() {
         ) : null}
 
         {!isLoading
-          ? filteredSnippets.map((snippet) => (
-              <article key={snippet.id} className="snippet-card">
-                <div className="snippet-card-header">
-                  <div>
-                    <h3>{snippet.title}</h3>
-                    <p>
-                      {snippet.category} / {snippet.subCategory}
-                    </p>
+          ? filteredSnippets.map((snippet) => {
+              const techMeta = getTechMeta(snippet.category);
+              const TechIcon = techMeta?.icon;
+              const badgeStyle = techMeta
+                ? ({ "--tech-color": techMeta.color } as CSSProperties)
+                : undefined;
+
+              return (
+                <article key={snippet.id} className="snippet-card">
+                  <div className="snippet-card-header">
+                    <div className="snippet-card-title">
+                      <h3>{snippet.title}</h3>
+                      <p>{snippet.subCategory}</p>
+                    </div>
+
+                    <span
+                      className={`tech-badge${techMeta ? "" : " tech-badge-fallback"}`}
+                      style={badgeStyle}
+                    >
+                      {TechIcon ? <TechIcon aria-hidden="true" /> : null}
+                      {techMeta?.label ?? snippet.category}
+                    </span>
                   </div>
-                </div>
 
-                <p className="snippet-description">{snippet.description}</p>
+                  <p className="snippet-description">{snippet.description}</p>
 
-                <pre>
-                  <code>{snippet.code}</code>
-                </pre>
+                  <pre>
+                    <code>{snippet.code}</code>
+                  </pre>
 
-                <div className="snippet-actions">
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => void handleCopySnippet(snippet.id, snippet.code)}
-                  >
-                    {copiedSnippetId === snippet.id ? "Copiado" : "Copiar"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => openEditEditor(snippet)}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={() => handleDeleteSnippet(snippet.id)}
-                  >
-                    Remover
-                  </button>
-                </div>
-              </article>
-            ))
+                  <div className="snippet-actions">
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => void handleCopySnippet(snippet.id, snippet.code)}
+                    >
+                      {copiedSnippetId === snippet.id ? "Copiado" : "Copiar"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => openEditEditor(snippet)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={() => handleDeleteSnippet(snippet.id)}
+                    >
+                      Remover
+                    </button>
+                  </div>
+                </article>
+              );
+            })
           : null}
       </section>
 
