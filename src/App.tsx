@@ -144,6 +144,8 @@ export default function App() {
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const utilityMenuRef = useRef<HTMLDivElement | null>(null);
   const copyTimeoutRef = useRef<number | null>(null);
+  const popupRef = useRef<HTMLDivElement | null>(null);
+  const editorPanelRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -237,6 +239,22 @@ export default function App() {
       window.removeEventListener("keydown", handleEscape);
     };
   }, []);
+
+  useEffect(() => {
+    if (!editorMode) {
+      return;
+    }
+
+    editorPanelRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+    popupRef.current?.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }, [editorMode]);
 
   const categories = useMemo(() => {
     return Array.from(new Set(snippets.map((snippet) => snippet.category))).sort();
@@ -461,23 +479,24 @@ export default function App() {
   }
 
   return (
-    <div className="popup">
-      <header className="popup-topbar">
-        <div className="brand">
-          <span className="brand-icon" aria-hidden="true">
-            <img src="/logo.svg" alt="" className="brand-logo" />
-          </span>
-          <div className="brand-copy">
-            <h1>Cola do Dev</h1>
-            <p>Snippets de bolso</p>
+    <div className="popup-shell">
+      <div className="popup" ref={popupRef}>
+        <header className="popup-topbar">
+          <div className="brand">
+            <span className="brand-icon" aria-hidden="true">
+              <img src="/logo.svg" alt="" className="brand-logo" />
+            </span>
+            <div className="brand-copy">
+              <h1>Cola do Dev</h1>
+              <p>Snippets de bolso</p>
+            </div>
           </div>
-        </div>
-        <button type="button" className="btn btn-primary btn-compact" onClick={openCreateEditor}>
-          + Novo
-        </button>
-      </header>
+          <button type="button" className="btn btn-primary btn-compact" onClick={openCreateEditor}>
+            + Novo
+          </button>
+        </header>
 
-      <section className="search-panel">
+        <section className="search-panel">
         <div className="search-row">
           <input
             className="search-input"
@@ -543,201 +562,202 @@ export default function App() {
             ))}
           </select>
         </div>
-      </section>
-
-      {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
-
-      {editorMode ? (
-        <section className="editor-panel">
-          <h2>{editorMode === "create" ? "Novo snippet" : "Editar snippet"}</h2>
-
-          <form onSubmit={handleSaveSnippet} className="editor-form">
-            <label>
-              Categoria
-              <input
-                type="text"
-                value={formData.category}
-                onChange={(event) => updateFormField("category", event.target.value)}
-                placeholder="Ex: Laravel"
-                required
-              />
-            </label>
-
-            <label>
-              Subcategoria
-              <input
-                type="text"
-                value={formData.subCategory}
-                onChange={(event) => updateFormField("subCategory", event.target.value)}
-                placeholder="Ex: Query Builder"
-                required
-              />
-            </label>
-
-            <label>
-              Título
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(event) => updateFormField("title", event.target.value)}
-                placeholder="Ex: whereExists com selectRaw"
-                required
-              />
-            </label>
-
-            <label>
-              Descrição
-              <textarea
-                rows={2}
-                value={formData.description}
-                onChange={(event) => updateFormField("description", event.target.value)}
-                placeholder="Resumo curto para lembrar quando usar"
-                required
-              />
-            </label>
-
-            <label>
-              Código
-              <textarea
-                rows={8}
-                value={formData.code}
-                onChange={(event) => updateFormField("code", event.target.value)}
-                placeholder="Cole seu snippet aqui"
-                required
-              />
-            </label>
-
-            <div className="editor-actions">
-              <button type="button" className="btn" onClick={closeEditor}>
-                Cancelar
-              </button>
-              <button type="submit" className="btn btn-primary">
-                Salvar
-              </button>
-            </div>
-          </form>
         </section>
-      ) : null}
 
-      <section className="snippets-list">
-        {isLoading ? <p className="empty-state">Carregando snippets...</p> : null}
+        {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
 
-        {!isLoading && filteredSnippets.length === 0 ? (
-          <p className="empty-state">Nenhum snippet encontrado para os filtros atuais.</p>
+        {editorMode ? (
+          <section className="editor-panel" ref={editorPanelRef}>
+            <h2>{editorMode === "create" ? "Novo snippet" : "Editar snippet"}</h2>
+
+            <form onSubmit={handleSaveSnippet} className="editor-form">
+              <label>
+                Categoria
+                <input
+                  type="text"
+                  value={formData.category}
+                  onChange={(event) => updateFormField("category", event.target.value)}
+                  placeholder="Ex: Laravel"
+                  required
+                />
+              </label>
+
+              <label>
+                Subcategoria
+                <input
+                  type="text"
+                  value={formData.subCategory}
+                  onChange={(event) => updateFormField("subCategory", event.target.value)}
+                  placeholder="Ex: Query Builder"
+                  required
+                />
+              </label>
+
+              <label>
+                Título
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(event) => updateFormField("title", event.target.value)}
+                  placeholder="Ex: whereExists com selectRaw"
+                  required
+                />
+              </label>
+
+              <label>
+                Descrição
+                <textarea
+                  rows={2}
+                  value={formData.description}
+                  onChange={(event) => updateFormField("description", event.target.value)}
+                  placeholder="Resumo curto para lembrar quando usar"
+                  required
+                />
+              </label>
+
+              <label>
+                Código
+                <textarea
+                  rows={8}
+                  value={formData.code}
+                  onChange={(event) => updateFormField("code", event.target.value)}
+                  placeholder="Cole seu snippet aqui"
+                  required
+                />
+              </label>
+
+              <div className="editor-actions">
+                <button type="button" className="btn" onClick={closeEditor}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Salvar
+                </button>
+              </div>
+            </form>
+          </section>
         ) : null}
 
-        {!isLoading
-          ? filteredSnippets.map((snippet) => {
-              const techMeta = getTechMeta(snippet.category);
-              const TechIcon = techMeta?.icon;
-              const badgeStyle = techMeta
-                ? ({ "--tech-color": techMeta.color } as CSSProperties)
-                : undefined;
+        <section className="snippets-list">
+          {isLoading ? <p className="empty-state">Carregando snippets...</p> : null}
 
-              return (
-                <article key={snippet.id} className="snippet-card">
-                  <div className="snippet-card-header">
-                    <div className="snippet-card-title">
-                      <h3>{snippet.title}</h3>
-                      <p>{snippet.subCategory}</p>
+          {!isLoading && filteredSnippets.length === 0 ? (
+            <p className="empty-state">Nenhum snippet encontrado para os filtros atuais.</p>
+          ) : null}
+
+          {!isLoading
+            ? filteredSnippets.map((snippet) => {
+                const techMeta = getTechMeta(snippet.category);
+                const TechIcon = techMeta?.icon;
+                const badgeStyle = techMeta
+                  ? ({ "--tech-color": techMeta.color } as CSSProperties)
+                  : undefined;
+
+                return (
+                  <article key={snippet.id} className="snippet-card">
+                    <div className="snippet-card-header">
+                      <div className="snippet-card-title">
+                        <h3>{snippet.title}</h3>
+                        <p>{snippet.subCategory}</p>
+                      </div>
+
+                      <span
+                        className={`tech-badge${techMeta ? "" : " tech-badge-fallback"}`}
+                        style={badgeStyle}
+                      >
+                        {TechIcon ? <TechIcon aria-hidden="true" /> : null}
+                        {techMeta?.label ?? snippet.category}
+                      </span>
                     </div>
 
-                    <span
-                      className={`tech-badge${techMeta ? "" : " tech-badge-fallback"}`}
-                      style={badgeStyle}
-                    >
-                      {TechIcon ? <TechIcon aria-hidden="true" /> : null}
-                      {techMeta?.label ?? snippet.category}
-                    </span>
-                  </div>
+                    <p className="snippet-description">{snippet.description}</p>
 
-                  <p className="snippet-description">{snippet.description}</p>
+                    <div className="snippet-code-box">
+                      <pre className="snippet-code-preview">
+                        <code>{snippet.code}</code>
+                      </pre>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-expand"
+                        onClick={() => setExpandedSnippet(snippet)}
+                      >
+                        Expandir
+                      </button>
+                    </div>
 
-                  <div className="snippet-code-box">
-                    <pre className="snippet-code-preview">
-                      <code>{snippet.code}</code>
-                    </pre>
-                    <button
-                      type="button"
-                      className="btn btn-ghost btn-expand"
-                      onClick={() => setExpandedSnippet(snippet)}
-                    >
-                      Expandir
-                    </button>
-                  </div>
+                    <div className="snippet-actions">
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => void handleCopySnippet(snippet.id, snippet.code)}
+                      >
+                        {copiedSnippetId === snippet.id ? "Copiado" : "Copiar"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-neutral"
+                        onClick={() => openEditEditor(snippet)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={() => handleDeleteSnippet(snippet.id)}
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </article>
+                );
+              })
+            : null}
+        </section>
 
-                  <div className="snippet-actions">
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => void handleCopySnippet(snippet.id, snippet.code)}
-                    >
-                      {copiedSnippetId === snippet.id ? "Copiado" : "Copiar"}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-neutral"
-                      onClick={() => openEditEditor(snippet)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-danger"
-                      onClick={() => handleDeleteSnippet(snippet.id)}
-                    >
-                      Remover
-                    </button>
-                  </div>
-                </article>
-              );
-            })
-          : null}
-      </section>
-
-      {expandedSnippet ? (
-        <div
-          className="code-modal-backdrop"
-          role="presentation"
-          onClick={() => setExpandedSnippet(null)}
-        >
-          <section
-            className="code-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="code-modal-title"
-            onClick={(event) => event.stopPropagation()}
+        {expandedSnippet ? (
+          <div
+            className="code-modal-backdrop"
+            role="presentation"
+            onClick={() => setExpandedSnippet(null)}
           >
-            <header className="code-modal-header">
-              <div>
-                <h2 id="code-modal-title">{expandedSnippet.title}</h2>
-                <p>
-                  {expandedSnippet.category} / {expandedSnippet.subCategory}
-                </p>
-              </div>
-              <button
-                type="button"
-                className="btn btn-neutral btn-compact"
-                onClick={() => setExpandedSnippet(null)}
-              >
-                Fechar
-              </button>
-            </header>
+            <section
+              className="code-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="code-modal-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <header className="code-modal-header">
+                <div>
+                  <h2 id="code-modal-title">{expandedSnippet.title}</h2>
+                  <p>
+                    {expandedSnippet.category} / {expandedSnippet.subCategory}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-neutral btn-compact"
+                  onClick={() => setExpandedSnippet(null)}
+                >
+                  Fechar
+                </button>
+              </header>
 
-            <pre className="code-modal-content">
-              <code>{expandedSnippet.code}</code>
-            </pre>
-          </section>
-        </div>
-      ) : null}
+              <pre className="code-modal-content">
+                <code>{expandedSnippet.code}</code>
+              </pre>
+            </section>
+          </div>
+        ) : null}
 
-      <input
-        ref={importInputRef}
-        type="file"
-        accept="application/json"
-        onChange={(event) => void handleImportJson(event)}
-        hidden
-      />
+        <input
+          ref={importInputRef}
+          type="file"
+          accept="application/json"
+          onChange={(event) => void handleImportJson(event)}
+          hidden
+        />
+      </div>
     </div>
   );
 }
