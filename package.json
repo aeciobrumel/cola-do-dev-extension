@@ -6,10 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:firefox": "npm run build && npm run package:firefox",
+    "build:submission": "npm run build:firefox && npm run package:source",
+    "package:firefox": "node scripts/package-firefox.mjs",
+    "package:source": "node scripts/package-source-submission.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "highlight.js": "^11.11.1",
+    "preact": "^10.29.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-icons": "^5.5.0"

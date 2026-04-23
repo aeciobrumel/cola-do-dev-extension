@@ -12,5 +12,13 @@
   "action": {
     "default_title": "Cola do Dev",
     "default_popup": "index.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "@cola-do-dev",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
   }
 }

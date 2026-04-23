@@ -3,10 +3,12 @@
 
 # build
 /dist
+/artifacts
 /coverage
 
 # misc
 .DS_Store
+/.codex
 *.pem
 
 # debug

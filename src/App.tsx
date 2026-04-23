@@ -7,11 +7,38 @@ import {
   useRef,
   useState
 } from "react";
-import { FiMoreHorizontal } from "react-icons/fi";
+import {
+  FiCheck,
+  FiCopy,
+  FiEdit2,
+  FiMaximize2,
+  FiMoon,
+  FiMoreHorizontal,
+  FiSun,
+  FiTrash2
+} from "react-icons/fi";
+import hljs from "highlight.js/lib/core";
+import bash from "highlight.js/lib/languages/bash";
+import css from "highlight.js/lib/languages/css";
+import javascript from "highlight.js/lib/languages/javascript";
+import json from "highlight.js/lib/languages/json";
+import php from "highlight.js/lib/languages/php";
+import sql from "highlight.js/lib/languages/sql";
+import typescript from "highlight.js/lib/languages/typescript";
+import xml from "highlight.js/lib/languages/xml";
 import { getTechMeta } from "./config/techIcons";
 import { defaultSnippets } from "./defaultSnippets";
 import { getStoredSnippets, setStoredSnippets } from "./storage";
 import { Snippet, SnippetFormData } from "./types";
+
+hljs.registerLanguage("bash", bash);
+hljs.registerLanguage("css", css);
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("json", json);
+hljs.registerLanguage("php", php);
+hljs.registerLanguage("sql", sql);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("xml", xml);
 
 const EMPTY_FORM: SnippetFormData = {
   category: "",
@@ -21,12 +48,118 @@ const EMPTY_FORM: SnippetFormData = {
   code: ""
 };
 
+const THEME_STORAGE_KEY = "cola-do-dev.theme";
+const HIGHLIGHT_AUTO_LANGUAGES = [
+  "javascript",
+  "typescript",
+  "php",
+  "sql",
+  "json",
+  "bash",
+  "css",
+  "xml"
+];
+
+type ThemeMode = "light" | "dark";
+
 function createSnippetId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
 
   return `snippet-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function getInitialTheme(): ThemeMode {
+  const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+
+  if (storedTheme === "light" || storedTheme === "dark") {
+    return storedTheme;
+  }
+
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function inferSnippetLanguage(snippet: Snippet): string | null {
+  const source = `${snippet.category} ${snippet.subCategory} ${snippet.title}`.toLowerCase();
+  const code = snippet.code.trim();
+
+  if (source.includes("typescript") || source.includes("tsx")) {
+    return "typescript";
+  }
+
+  if (
+    source.includes("javascript") ||
+    source.includes("react") ||
+    source.includes("node") ||
+    source.includes("js")
+  ) {
+    return "javascript";
+  }
+
+  if (source.includes("php") || source.includes("laravel") || code.startsWith("<?php")) {
+    return "php";
+  }
+
+  if (source.includes("sql") || source.includes("query")) {
+    return "sql";
+  }
+
+  if (source.includes("json") || code.startsWith("{") || code.startsWith("[")) {
+    return "json";
+  }
+
+  if (source.includes("css") || source.includes("style")) {
+    return "css";
+  }
+
+  if (source.includes("html") || source.includes("xml") || code.startsWith("<")) {
+    return "xml";
+  }
+
+  if (source.includes("bash") || source.includes("shell") || code.startsWith("npm ")) {
+    return "bash";
+  }
+
+  return null;
+}
+
+function getSnippetCodeLabel(snippet: Snippet): string {
+  const language = inferSnippetLanguage(snippet);
+
+  if (language === "xml") {
+    return "html";
+  }
+
+  return language ?? snippet.category.toLowerCase();
+}
+
+function highlightSnippetCode(snippet: Snippet): string {
+  const language = inferSnippetLanguage(snippet);
+
+  try {
+    if (language && hljs.getLanguage(language)) {
+      return hljs.highlight(snippet.code, {
+        language,
+        ignoreIllegals: true
+      }).value;
+    }
+
+    return hljs.highlightAuto(snippet.code, HIGHLIGHT_AUTO_LANGUAGES).value;
+  } catch {
+    return escapeHtml(snippet.code);
+  }
 }
 
 function normalizeFormData(formData: SnippetFormData): SnippetFormData {
@@ -127,6 +260,7 @@ async function copyToClipboard(text: string): Promise<void> {
 export default function App() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -146,6 +280,11 @@ export default function App() {
   const copyTimeoutRef = useRef<number | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
   const editorPanelRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     let mounted = true;
@@ -333,6 +472,10 @@ export default function App() {
     setFormData(EMPTY_FORM);
   }
 
+  function toggleTheme(): void {
+    setTheme((current) => (current === "dark" ? "light" : "dark"));
+  }
+
   function updateFormField<K extends keyof SnippetFormData>(
     field: K,
     value: SnippetFormData[K]
@@ -491,77 +634,98 @@ export default function App() {
               <p>Snippets de bolso</p>
             </div>
           </div>
-          <button type="button" className="btn btn-primary btn-compact" onClick={openCreateEditor}>
-            + Novo
-          </button>
-        </header>
-
-        <section className="search-panel">
-        <div className="search-row">
-          <input
-            className="search-input"
-            type="search"
-            placeholder="Buscar por título, descrição, categoria ou código"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-
-          <div className="utility-menu" ref={utilityMenuRef}>
+          <div className="topbar-actions">
             <button
               type="button"
               className="btn btn-icon"
-              aria-label="Mais acoes"
-              aria-haspopup="menu"
-              aria-expanded={isUtilityMenuOpen}
-              onClick={() => setIsUtilityMenuOpen((current) => !current)}
+              aria-label={theme === "dark" ? "Usar modo claro" : "Usar modo escuro"}
+              title={theme === "dark" ? "Modo claro" : "Modo escuro"}
+              onClick={toggleTheme}
             >
-              <FiMoreHorizontal aria-hidden="true" />
+              {theme === "dark" ? <FiSun aria-hidden="true" /> : <FiMoon aria-hidden="true" />}
             </button>
-
-            {isUtilityMenuOpen ? (
-              <div className="utility-dropdown" role="menu" aria-label="Acoes de JSON">
-                <button type="button" className="utility-item" role="menuitem" onClick={triggerImportJson}>
-                  Importar JSON
-                </button>
-                <button
-                  type="button"
-                  className="utility-item"
-                  role="menuitem"
-                  onClick={handleExportJson}
-                  disabled={snippets.length === 0}
-                >
-                  Exportar JSON
-                </button>
-              </div>
-            ) : null}
+            <button type="button" className="btn btn-primary btn-compact" onClick={openCreateEditor}>
+              + Novo
+            </button>
           </div>
-        </div>
+        </header>
 
-        <div className="filters-row">
-          <select
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-          >
-            <option value="all">Todas categorias</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+        <section className="search-panel">
+          <div className="search-row">
+            <label className="field-control">
+              <span>Buscar</span>
+              <input
+                className="search-input"
+                type="search"
+                placeholder="Título, categoria ou código"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+            </label>
 
-          <select
-            value={subCategoryFilter}
-            onChange={(event) => setSubCategoryFilter(event.target.value)}
-          >
-            <option value="all">Todas subcategorias</option>
-            {subCategories.map((subCategory) => (
-              <option key={subCategory} value={subCategory}>
-                {subCategory}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div className="utility-menu" ref={utilityMenuRef}>
+              <button
+                type="button"
+                className="btn btn-icon"
+                aria-label="Importar ou exportar JSON"
+                title="Importar ou exportar JSON"
+                aria-haspopup="menu"
+                aria-expanded={isUtilityMenuOpen}
+                onClick={() => setIsUtilityMenuOpen((current) => !current)}
+              >
+                <FiMoreHorizontal aria-hidden="true" />
+              </button>
+
+              {isUtilityMenuOpen ? (
+                <div className="utility-dropdown" role="menu" aria-label="Ações de JSON">
+                  <button type="button" className="utility-item" role="menuitem" onClick={triggerImportJson}>
+                    Importar JSON
+                  </button>
+                  <button
+                    type="button"
+                    className="utility-item"
+                    role="menuitem"
+                    onClick={handleExportJson}
+                    disabled={snippets.length === 0}
+                  >
+                    Exportar JSON
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="filters-row">
+            <label className="field-control">
+              <span>Categoria</span>
+              <select
+                value={categoryFilter}
+                onChange={(event) => setCategoryFilter(event.target.value)}
+              >
+                <option value="all">Todas</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field-control">
+              <span>Subcategoria</span>
+              <select
+                value={subCategoryFilter}
+                onChange={(event) => setSubCategoryFilter(event.target.value)}
+              >
+                <option value="all">Todas</option>
+                {subCategories.map((subCategory) => (
+                  <option key={subCategory} value={subCategory}>
+                    {subCategory}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </section>
 
         {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
@@ -652,6 +816,7 @@ export default function App() {
                 const badgeStyle = techMeta
                   ? ({ "--tech-color": techMeta.color } as CSSProperties)
                   : undefined;
+                const highlightedCode = highlightSnippetCode(snippet);
 
                 return (
                   <article key={snippet.id} className="snippet-card">
@@ -673,39 +838,61 @@ export default function App() {
                     <p className="snippet-description">{snippet.description}</p>
 
                     <div className="snippet-code-box">
+                      <div className="snippet-code-header">
+                        <span className="window-dot window-dot-red" aria-hidden="true" />
+                        <span className="window-dot window-dot-yellow" aria-hidden="true" />
+                        <span className="window-dot window-dot-green" aria-hidden="true" />
+                        <span className="code-file-name">{getSnippetCodeLabel(snippet)}</span>
+                        <button
+                          type="button"
+                          className="btn btn-icon btn-copy-code"
+                          aria-label={
+                            copiedSnippetId === snippet.id
+                              ? "Código copiado"
+                              : "Copiar código"
+                          }
+                          title={copiedSnippetId === snippet.id ? "Copiado" : "Copiar"}
+                          onClick={() => void handleCopySnippet(snippet.id, snippet.code)}
+                        >
+                          {copiedSnippetId === snippet.id ? (
+                            <FiCheck aria-hidden="true" />
+                          ) : (
+                            <FiCopy aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
                       <pre className="snippet-code-preview">
-                        <code>{snippet.code}</code>
+                        <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
                       </pre>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-expand"
-                        onClick={() => setExpandedSnippet(snippet)}
-                      >
-                        Expandir
-                      </button>
                     </div>
 
                     <div className="snippet-actions">
                       <button
                         type="button"
-                        className="btn btn-primary"
-                        onClick={() => void handleCopySnippet(snippet.id, snippet.code)}
+                        className="btn btn-ghost btn-icon"
+                        aria-label="Ver código completo"
+                        title="Ver código completo"
+                        onClick={() => setExpandedSnippet(snippet)}
                       >
-                        {copiedSnippetId === snippet.id ? "Copiado" : "Copiar"}
+                        <FiMaximize2 aria-hidden="true" />
                       </button>
                       <button
                         type="button"
-                        className="btn btn-neutral"
+                        className="btn btn-neutral btn-icon"
+                        aria-label="Editar snippet"
+                        title="Editar"
                         onClick={() => openEditEditor(snippet)}
                       >
-                        Editar
+                        <FiEdit2 aria-hidden="true" />
                       </button>
                       <button
                         type="button"
-                        className="btn btn-danger"
+                        className="btn btn-danger btn-icon"
+                        aria-label="Excluir snippet"
+                        title="Excluir"
                         onClick={() => handleDeleteSnippet(snippet.id)}
                       >
-                        Remover
+                        <FiTrash2 aria-hidden="true" />
                       </button>
                     </div>
                   </article>
@@ -744,7 +931,11 @@ export default function App() {
               </header>
 
               <pre className="code-modal-content">
-                <code>{expandedSnippet.code}</code>
+                <code
+                  dangerouslySetInnerHTML={{
+                    __html: highlightSnippetCode(expandedSnippet)
+                  }}
+                />
               </pre>
             </section>
           </div>
